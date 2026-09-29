@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import SignOutButton from "./sign-out-button";
+import SendBatchButton from "./send-batch-button";
 
 const GMAIL_STATUS_MESSAGES: Record<string, string> = {
   connected: "Gmail connected.",
@@ -63,9 +64,12 @@ export default async function DashboardPage(props: PageProps<"/dashboard">) {
 
       <div className="mb-6">
         {gmailConnection ? (
-          <p className="text-sm text-zinc-500">
-            Gmail connected: {gmailConnection.gmail_address}
-          </p>
+          <>
+            <p className="mb-3 text-sm text-zinc-500">
+              Gmail connected: {gmailConnection.gmail_address}
+            </p>
+            <SendBatchButton />
+          </>
         ) : allowedSender ? (
           <a
             href="/api/gmail/connect"
