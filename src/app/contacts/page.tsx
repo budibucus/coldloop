@@ -16,7 +16,7 @@ export default async function ContactsPage() {
 
   const { data: contacts } = await supabase
     .from("contacts")
-    .select("id, name, email, company, status")
+    .select("id, name, email, company, status, attachment_filename")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -54,6 +54,7 @@ export default async function ContactsPage() {
                 <th className="py-2 pr-4 font-medium">Name</th>
                 <th className="py-2 pr-4 font-medium">Email</th>
                 <th className="py-2 pr-4 font-medium">Company</th>
+                <th className="py-2 pr-4 font-medium">Attachment</th>
                 <th className="py-2 font-medium">Status</th>
               </tr>
             </thead>
@@ -66,6 +67,9 @@ export default async function ContactsPage() {
                   <td className="py-2 pr-4">{contact.name}</td>
                   <td className="py-2 pr-4">{contact.email}</td>
                   <td className="py-2 pr-4">{contact.company ?? "—"}</td>
+                  <td className="py-2 pr-4">
+                    {contact.attachment_filename ?? "—"}
+                  </td>
                   <td className="py-2">{contact.status}</td>
                 </tr>
               ))}

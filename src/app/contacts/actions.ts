@@ -4,6 +4,7 @@ import Papa from "papaparse";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { uploadAttachment } from "@/lib/storage/attachments";
 
 export type ContactFormState = { error: string } | null;
 export type CsvImportState = { error: string } | { imported: number; skipped: number } | null;
@@ -38,12 +39,27 @@ export async function addContact(
     return { error: "Name and email are required." };
   }
 
+  let attachmentPath: string | null = null;
+  let attachmentFilename: string | null = null;
+
+  const attachmentFile = formData.get("attachment");
+  if (attachmentFile instanceof File && attachmentFile.size > 0) {
+    const result = await uploadAttachment(supabase, user.id, "contacts", attachmentFile);
+    if ("error" in result) {
+      return { error: result.error };
+    }
+    attachmentPath = result.path;
+    attachmentFilename = result.filename;
+  }
+
   const { error } = await supabase.from("contacts").insert({
     user_id: user.id,
     name,
     email,
     company: company || null,
     personalization_notes: personalizationNotes || null,
+    attachment_path: attachmentPath,
+    attachment_filename: attachmentFilename,
   });
 
   if (error) {

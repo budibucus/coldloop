@@ -1,9 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { getGmailClientForUser, sendGmailMessage } from "@/lib/gmail/client";
 import { renderEmail } from "@/lib/emails/templates";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -14,10 +12,7 @@ type Contact = Database["public"]["Tables"]["contacts"]["Row"];
 type SequenceStep = Database["public"]["Enums"]["email_sequence_step"];
 type SentEmail = { contact_id: string; sequence_step: SequenceStep; sent_at: string | null };
 
-export type SendBatchState =
-  | { error: string }
-  | { sent: number; failed: number; capReached: boolean }
-  | null;
+export type PrepareBatchState = { error: string } | null;
 
 function nextStepFor(sentEmailsForContact: SentEmail[]): {
   step: SequenceStep;
@@ -46,10 +41,10 @@ function nextStepFor(sentEmailsForContact: SentEmail[]): {
   return null;
 }
 
-export async function sendTodaysBatch(
-  _prevState: SendBatchState,
+export async function prepareTodaysBatch(
+  _prevState: PrepareBatchState,
   _formData: FormData,
-): Promise<SendBatchState> {
+): Promise<PrepareBatchState> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -69,9 +64,24 @@ export async function sendTodaysBatch(
     return { error: "Complete your profile before sending." };
   }
 
-  const gmailClient = await getGmailClientForUser(supabase, user.id);
-  if (!gmailClient) {
+  const { data: gmailConnection } = await supabase
+    .from("gmail_connections")
+    .select("user_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!gmailConnection) {
     return { error: "Connect Gmail before sending." };
+  }
+
+  const { count: existingDrafts } = await supabase
+    .from("emails")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .eq("status", "draft");
+
+  if ((existingDrafts ?? 0) > 0) {
+    redirect("/review");
   }
 
   const startOfToday = new Date();
@@ -84,9 +94,9 @@ export async function sendTodaysBatch(
     .eq("status", "sent")
     .gte("sent_at", startOfToday.toISOString());
 
-  let remainingCap = DAILY_SEND_CAP - (sentToday ?? 0);
+  const remainingCap = DAILY_SEND_CAP - (sentToday ?? 0);
   if (remainingCap <= 0) {
-    return { sent: 0, failed: 0, capReached: true };
+    return { error: "Daily send cap reached for today." };
   }
 
   const { data: contacts, error: contactsError } = await supabase
@@ -127,56 +137,31 @@ export async function sendTodaysBatch(
     }
   }
 
-  let sent = 0;
-  let failed = 0;
-
-  for (const { contact, step } of due) {
-    if (remainingCap <= 0) break;
-
-    const { subject, body } = renderEmail(step, profile, contact);
-
-    try {
-      await sendGmailMessage(gmailClient.oauth2Client, {
-        from: gmailClient.gmailAddress,
-        to: contact.email,
-        subject,
-        body,
-      });
-
-      await supabase.from("emails").insert({
-        user_id: user.id,
-        contact_id: contact.id,
-        sequence_step: step,
-        subject,
-        body,
-        sent_at: new Date().toISOString(),
-        status: "sent",
-      });
-
-      if (step === "initial") {
-        await supabase
-          .from("contacts")
-          .update({ status: "sent" })
-          .eq("id", contact.id);
-      }
-
-      sent += 1;
-      remainingCap -= 1;
-    } catch {
-      await supabase.from("emails").insert({
-        user_id: user.id,
-        contact_id: contact.id,
-        sequence_step: step,
-        subject,
-        body,
-        status: "failed",
-      });
-      failed += 1;
-    }
+  const toPrepare = due.slice(0, remainingCap);
+  if (toPrepare.length === 0) {
+    return { error: "No contacts are due for an email right now." };
   }
 
-  revalidatePath("/dashboard");
-  revalidatePath("/contacts");
+  const draftRows = toPrepare.map(({ contact, step }) => {
+    const { subject, body } = renderEmail(step, profile, contact);
+    const attachmentFilename =
+      contact.attachment_filename ?? profile.default_attachment_filename ?? null;
 
-  return { sent, failed, capReached: remainingCap <= 0 };
+    return {
+      user_id: user.id,
+      contact_id: contact.id,
+      sequence_step: step,
+      subject,
+      body,
+      status: "draft" as const,
+      attachment_filename: attachmentFilename,
+    };
+  });
+
+  const { error } = await supabase.from("emails").insert(draftRows);
+  if (error) {
+    return { error: error.message };
+  }
+
+  redirect("/review");
 }

@@ -116,6 +116,31 @@ export default function OnboardingForm({
         </select>
       </div>
 
+      <div>
+        <label htmlFor="attachment" className="mb-1 block text-sm font-medium">
+          Default attachment
+        </label>
+        {profile?.default_attachment_filename && (
+          <div className="mb-2 flex items-center gap-2 text-sm text-zinc-500">
+            <span>Current: {profile.default_attachment_filename}</span>
+            <label className="flex items-center gap-1 text-xs">
+              <input type="checkbox" name="remove_attachment" />
+              Remove
+            </label>
+          </div>
+        )}
+        <input
+          id="attachment"
+          name="attachment"
+          type="file"
+          className="w-full text-sm"
+        />
+        <p className="mt-1 text-xs text-zinc-500">
+          Attached to every outreach email, unless a contact has its own
+          attachment. Max 10MB.
+        </p>
+      </div>
+
       {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
 
       <button

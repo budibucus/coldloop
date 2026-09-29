@@ -31,6 +31,8 @@ export type Database = {
       }
       contacts: {
         Row: {
+          attachment_filename: string | null
+          attachment_path: string | null
           company: string | null
           created_at: string
           email: string
@@ -42,6 +44,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          attachment_filename?: string | null
+          attachment_path?: string | null
           company?: string | null
           created_at?: string
           email: string
@@ -53,6 +57,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          attachment_filename?: string | null
+          attachment_path?: string | null
           company?: string | null
           created_at?: string
           email?: string
@@ -67,6 +73,7 @@ export type Database = {
       }
       emails: {
         Row: {
+          attachment_filename: string | null
           body: string
           contact_id: string
           created_at: string
@@ -78,6 +85,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          attachment_filename?: string | null
           body: string
           contact_id: string
           created_at?: string
@@ -89,6 +97,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          attachment_filename?: string | null
           body?: string
           contact_id?: string
           created_at?: string
@@ -143,6 +152,8 @@ export type Database = {
         Row: {
           company: string
           created_at: string
+          default_attachment_filename: string | null
+          default_attachment_path: string | null
           product_description: string | null
           sender_name: string
           sender_title: string | null
@@ -154,6 +165,8 @@ export type Database = {
         Insert: {
           company: string
           created_at?: string
+          default_attachment_filename?: string | null
+          default_attachment_path?: string | null
           product_description?: string | null
           sender_name: string
           sender_title?: string | null
@@ -165,6 +178,8 @@ export type Database = {
         Update: {
           company?: string
           created_at?: string
+          default_attachment_filename?: string | null
+          default_attachment_path?: string | null
           product_description?: string | null
           sender_name?: string
           sender_title?: string | null

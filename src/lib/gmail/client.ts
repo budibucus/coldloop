@@ -52,20 +52,60 @@ export async function getGmailClientForUser(
   return { oauth2Client, gmailAddress: connection.gmail_address };
 }
 
+export type GmailAttachment = {
+  filename: string;
+  content: Buffer;
+  mimeType: string;
+};
+
 function buildRawMessage(params: {
   from: string;
   to: string;
   subject: string;
   body: string;
+  attachment?: GmailAttachment;
 }): string {
-  const message = [
+  const headers = [
     `From: ${params.from}`,
     `To: ${params.to}`,
     `Subject: ${params.subject}`,
-    "Content-Type: text/plain; charset=utf-8",
-    "",
-    params.body,
-  ].join("\r\n");
+    "MIME-Version: 1.0",
+  ];
+
+  let message: string;
+
+  if (params.attachment) {
+    const boundary = `coldloop-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const base64Content = params.attachment.content
+      .toString("base64")
+      .replace(/.{76}/g, "$&\r\n");
+
+    message = [
+      ...headers,
+      `Content-Type: multipart/mixed; boundary="${boundary}"`,
+      "",
+      `--${boundary}`,
+      "Content-Type: text/plain; charset=utf-8",
+      "",
+      params.body,
+      "",
+      `--${boundary}`,
+      `Content-Type: ${params.attachment.mimeType}; name="${params.attachment.filename}"`,
+      `Content-Disposition: attachment; filename="${params.attachment.filename}"`,
+      "Content-Transfer-Encoding: base64",
+      "",
+      base64Content,
+      "",
+      `--${boundary}--`,
+    ].join("\r\n");
+  } else {
+    message = [
+      ...headers,
+      "Content-Type: text/plain; charset=utf-8",
+      "",
+      params.body,
+    ].join("\r\n");
+  }
 
   return Buffer.from(message)
     .toString("base64")
@@ -76,7 +116,13 @@ function buildRawMessage(params: {
 
 export async function sendGmailMessage(
   oauth2Client: InstanceType<typeof google.auth.OAuth2>,
-  params: { from: string; to: string; subject: string; body: string },
+  params: {
+    from: string;
+    to: string;
+    subject: string;
+    body: string;
+    attachment?: GmailAttachment;
+  },
 ): Promise<void> {
   const gmail = google.gmail({ version: "v1", auth: oauth2Client });
   await gmail.users.messages.send({
