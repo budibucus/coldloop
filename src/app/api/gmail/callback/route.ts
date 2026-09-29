@@ -20,6 +20,12 @@ export async function GET(request: Request) {
   }
 
   if (!code || !state || !expectedState || state !== expectedState) {
+    console.error("gmail/callback: state check failed", {
+      hasCode: !!code,
+      hasState: !!state,
+      hasExpectedState: !!expectedState,
+      stateMatches: state === expectedState,
+    });
     return NextResponse.redirect(`${origin}/dashboard?gmail=error`);
   }
 
@@ -37,6 +43,10 @@ export async function GET(request: Request) {
   try {
     const { tokens } = await oauth2Client.getToken(code);
     if (!tokens.access_token || !tokens.refresh_token) {
+      console.error("gmail/callback: missing tokens from Google", {
+        hasAccessToken: !!tokens.access_token,
+        hasRefreshToken: !!tokens.refresh_token,
+      });
       return NextResponse.redirect(`${origin}/dashboard?gmail=error`);
     }
 
@@ -46,6 +56,7 @@ export async function GET(request: Request) {
     const gmailAddress = profile.data.emailAddress;
 
     if (!gmailAddress) {
+      console.error("gmail/callback: no emailAddress in Gmail profile response");
       return NextResponse.redirect(`${origin}/dashboard?gmail=error`);
     }
 
@@ -60,11 +71,13 @@ export async function GET(request: Request) {
     });
 
     if (dbError) {
+      console.error("gmail/callback: db upsert failed", dbError);
       return NextResponse.redirect(`${origin}/dashboard?gmail=error`);
     }
 
     return NextResponse.redirect(`${origin}/dashboard?gmail=connected`);
-  } catch {
+  } catch (err) {
+    console.error("gmail/callback: unhandled error", err);
     return NextResponse.redirect(`${origin}/dashboard?gmail=error`);
   }
 }
