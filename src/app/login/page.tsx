@@ -18,6 +18,22 @@ function getServerRedirectSnapshot() {
   return undefined;
 }
 
+function subscribeColorScheme(callback: () => void) {
+  const mql = window.matchMedia("(prefers-color-scheme: dark)");
+  mql.addEventListener("change", callback);
+  return () => mql.removeEventListener("change", callback);
+}
+
+function getColorSchemeSnapshot() {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "default";
+}
+
+function getServerColorSchemeSnapshot() {
+  return "default" as const;
+}
+
 export default function LoginPage() {
   const [supabase] = useState(() => createClient());
   const router = useRouter();
@@ -25,6 +41,11 @@ export default function LoginPage() {
     subscribe,
     getRedirectSnapshot,
     getServerRedirectSnapshot,
+  );
+  const colorScheme = useSyncExternalStore(
+    subscribeColorScheme,
+    getColorSchemeSnapshot,
+    getServerColorSchemeSnapshot,
   );
 
   useEffect(() => {
@@ -46,6 +67,7 @@ export default function LoginPage() {
         <Auth
           supabaseClient={supabase}
           appearance={{ theme: ThemeSupa }}
+          theme={colorScheme}
           providers={[]}
           redirectTo={redirectTo}
         />
