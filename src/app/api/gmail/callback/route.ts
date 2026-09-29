@@ -51,12 +51,12 @@ export async function GET(request: Request) {
     }
 
     oauth2Client.setCredentials(tokens);
-    const gmail = google.gmail({ version: "v1", auth: oauth2Client });
-    const profile = await gmail.users.getProfile({ userId: "me" });
-    const gmailAddress = profile.data.emailAddress;
+    const oauth2 = google.oauth2({ version: "v2", auth: oauth2Client });
+    const userinfo = await oauth2.userinfo.get();
+    const gmailAddress = userinfo.data.email;
 
     if (!gmailAddress) {
-      console.error("gmail/callback: no emailAddress in Gmail profile response");
+      console.error("gmail/callback: no email in userinfo response");
       return NextResponse.redirect(`${origin}/dashboard?gmail=error`);
     }
 
