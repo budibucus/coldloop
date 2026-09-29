@@ -82,6 +82,12 @@ export default async function DashboardPage(props: PageProps<"/dashboard">) {
 
       <div className="flex items-center gap-3">
         <Link
+          href="/contacts"
+          className="rounded border border-zinc-300 px-4 py-2 text-sm dark:border-zinc-700"
+        >
+          Contacts
+        </Link>
+        <Link
           href="/onboarding"
           className="rounded border border-zinc-300 px-4 py-2 text-sm dark:border-zinc-700"
         >
