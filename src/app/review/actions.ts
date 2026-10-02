@@ -87,7 +87,7 @@ export async function confirmAndSendAll(
 
   const { data: drafts, error: draftsError } = await supabase
     .from("emails")
-    .select("id, contact_id, subject, body, sequence_step, attachment_filename")
+    .select("id, contact_id, campaign_id, subject, body, sequence_step, attachment_filename")
     .eq("user_id", user.id)
     .eq("status", "draft")
     .order("created_at", { ascending: true });
@@ -105,6 +105,13 @@ export async function confirmAndSendAll(
     .select("id, email, attachment_path")
     .in("id", contactIds);
   const contactById = new Map((contacts ?? []).map((c) => [c.id, c]));
+
+  const campaignIds = [...new Set(drafts.map((d) => d.campaign_id).filter((id): id is string => !!id))];
+  const { data: campaigns } =
+    campaignIds.length > 0
+      ? await supabase.from("campaigns").select("id, attachment_path").in("id", campaignIds)
+      : { data: [] };
+  const campaignById = new Map((campaigns ?? []).map((c) => [c.id, c]));
 
   const { data: profile } = await supabase
     .from("sender_profiles")
@@ -126,7 +133,12 @@ export async function confirmAndSendAll(
     let attachment:
       | { filename: string; content: Buffer; mimeType: string }
       | undefined;
-    const attachmentPath = contact.attachment_path ?? profile?.default_attachment_path ?? null;
+    const campaign = draft.campaign_id ? campaignById.get(draft.campaign_id) : undefined;
+    const attachmentPath =
+      contact.attachment_path ??
+      campaign?.attachment_path ??
+      profile?.default_attachment_path ??
+      null;
     if (attachmentPath && draft.attachment_filename) {
       const downloaded = await downloadAttachment(supabase, attachmentPath);
       if (downloaded) {

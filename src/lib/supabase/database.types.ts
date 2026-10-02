@@ -29,6 +29,39 @@ export type Database = {
         }
         Relationships: []
       }
+      campaigns: {
+        Row: {
+          attachment_filename: string | null
+          attachment_path: string | null
+          created_at: string
+          id: string
+          max_send_count: number
+          name: string
+          objective: Database["public"]["Enums"]["email_sequence_step"]
+          user_id: string
+        }
+        Insert: {
+          attachment_filename?: string | null
+          attachment_path?: string | null
+          created_at?: string
+          id?: string
+          max_send_count?: number
+          name: string
+          objective: Database["public"]["Enums"]["email_sequence_step"]
+          user_id: string
+        }
+        Update: {
+          attachment_filename?: string | null
+          attachment_path?: string | null
+          created_at?: string
+          id?: string
+          max_send_count?: number
+          name?: string
+          objective?: Database["public"]["Enums"]["email_sequence_step"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       contacts: {
         Row: {
           attachment_filename: string | null
@@ -75,6 +108,7 @@ export type Database = {
         Row: {
           attachment_filename: string | null
           body: string
+          campaign_id: string | null
           contact_id: string
           created_at: string
           id: string
@@ -87,6 +121,7 @@ export type Database = {
         Insert: {
           attachment_filename?: string | null
           body: string
+          campaign_id?: string | null
           contact_id: string
           created_at?: string
           id?: string
@@ -99,6 +134,7 @@ export type Database = {
         Update: {
           attachment_filename?: string | null
           body?: string
+          campaign_id?: string | null
           contact_id?: string
           created_at?: string
           id?: string
@@ -109,6 +145,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "emails_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "emails_contact_id_fkey"
             columns: ["contact_id"]

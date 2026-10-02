@@ -2,7 +2,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import SignOutButton from "./sign-out-button";
-import PrepareBatchButton from "./prepare-batch-button";
 
 const GMAIL_STATUS_MESSAGES: Record<string, string> = {
   connected: "Gmail connected.",
@@ -89,16 +88,22 @@ export default async function DashboardPage(props: PageProps<"/dashboard">) {
             <p className="mb-3 text-sm text-zinc-500">
               Gmail connected: {gmailConnection.gmail_address}
             </p>
-            {pendingDrafts && pendingDrafts > 0 ? (
+            <div className="flex items-center gap-3">
+              {pendingDrafts && pendingDrafts > 0 && (
+                <Link
+                  href="/review"
+                  className="inline-block rounded bg-zinc-900 px-4 py-2 text-sm text-white dark:bg-zinc-50 dark:text-black"
+                >
+                  Review {pendingDrafts} pending email{pendingDrafts === 1 ? "" : "s"}
+                </Link>
+              )}
               <Link
-                href="/review"
-                className="inline-block rounded bg-zinc-900 px-4 py-2 text-sm text-white dark:bg-zinc-50 dark:text-black"
+                href="/campaigns"
+                className="inline-block rounded border border-zinc-300 px-4 py-2 text-sm dark:border-zinc-700"
               >
-                Review {pendingDrafts} pending email{pendingDrafts === 1 ? "" : "s"}
+                Campaigns
               </Link>
-            ) : (
-              <PrepareBatchButton />
-            )}
+            </div>
           </>
         ) : allowedSender ? (
           <a

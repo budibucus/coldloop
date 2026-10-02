@@ -7,7 +7,7 @@ const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
 export async function uploadAttachment(
   supabase: SupabaseClient<Database>,
   userId: string,
-  folder: "profile" | "contacts",
+  folder: "profile" | "contacts" | "campaigns",
   file: File,
 ): Promise<{ path: string; filename: string } | { error: string }> {
   if (file.size === 0) {
