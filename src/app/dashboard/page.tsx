@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import SignOutButton from "./sign-out-button";
+import CheckRepliesButton from "./check-replies-button";
 
 const GMAIL_STATUS_MESSAGES: Record<string, string> = {
   connected: "Gmail connected.",
@@ -24,6 +25,15 @@ export default async function DashboardPage(props: PageProps<"/dashboard">) {
   const batchSent = Number(Array.isArray(sentParam) ? sentParam[0] : sentParam) || 0;
   const batchFailed =
     Number(Array.isArray(failedParam) ? failedParam[0] : failedParam) || 0;
+
+  const repliesParam = searchParams.replies;
+  const repliesStatus = Array.isArray(repliesParam) ? repliesParam[0] : repliesParam;
+  const checkedParam = searchParams.checked;
+  const repliedParam = searchParams.replied;
+  const repliesChecked =
+    Number(Array.isArray(checkedParam) ? checkedParam[0] : checkedParam) || 0;
+  const repliesReplied =
+    Number(Array.isArray(repliedParam) ? repliedParam[0] : repliedParam) || 0;
 
   const supabase = await createClient();
   const {
@@ -82,6 +92,15 @@ export default async function DashboardPage(props: PageProps<"/dashboard">) {
         </p>
       )}
 
+      {repliesStatus === "checked" && (
+        <p className="mb-4 rounded border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700">
+          Checked {repliesChecked} contact{repliesChecked === 1 ? "" : "s"}
+          {repliesReplied > 0
+            ? `, ${repliesReplied} replied — pending follow-ups canceled.`
+            : ", no new replies."}
+        </p>
+      )}
+
       <div className="mb-6">
         {gmailConnection ? (
           <>
@@ -103,6 +122,7 @@ export default async function DashboardPage(props: PageProps<"/dashboard">) {
               >
                 Campaigns
               </Link>
+              <CheckRepliesButton />
             </div>
           </>
         ) : allowedSender ? (
