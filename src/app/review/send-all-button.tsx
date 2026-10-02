@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { confirmAndSendAll, type ConfirmSendState } from "./actions";
+import { BUTTON_PRIMARY } from "@/lib/ui/button-styles";
 
 export default function SendAllButton() {
   const [state, formAction, pending] = useActionState<
@@ -11,11 +12,7 @@ export default function SendAllButton() {
 
   return (
     <form action={formAction} className="space-y-2">
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded bg-zinc-900 px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-zinc-50 dark:text-black"
-      >
+      <button type="submit" disabled={pending} className={BUTTON_PRIMARY}>
         {pending ? "Sending..." : "Confirm and send"}
       </button>
 

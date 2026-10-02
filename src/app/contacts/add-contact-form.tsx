@@ -2,6 +2,8 @@
 
 import { useActionState } from "react";
 import { addContact, type ContactFormState } from "./actions";
+import FileInputButton from "@/components/file-input-button";
+import { BUTTON_PRIMARY } from "@/lib/ui/button-styles";
 
 const inputClasses =
   "w-full rounded border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900";
@@ -46,24 +48,15 @@ export default function AddContactForm() {
       </div>
 
       <div>
-        <label htmlFor="contact-attachment" className="mb-1 block text-xs text-zinc-500">
+        <p className="mb-1 text-xs text-zinc-500">
           Attachment for this contact (optional, overrides your default)
-        </label>
-        <input
-          id="contact-attachment"
-          name="attachment"
-          type="file"
-          className="w-full text-sm"
-        />
+        </p>
+        <FileInputButton name="attachment" />
       </div>
 
       {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded bg-zinc-900 px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-zinc-50 dark:text-black"
-      >
+      <button type="submit" disabled={pending} className={BUTTON_PRIMARY}>
         {pending ? "Adding..." : "Add contact"}
       </button>
     </form>

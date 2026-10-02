@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { filterEligibleForStep } from "@/lib/emails/sequencing";
 import ContactPickerForm from "./contact-picker-form";
+import { BUTTON_PRIMARY } from "@/lib/ui/button-styles";
 
 const OBJECTIVE_LABELS: Record<string, string> = {
   initial: "Initial outreach",
@@ -90,10 +91,7 @@ export default async function CampaignDetailPage(
       </div>
 
       {stats.draft > 0 && (
-        <Link
-          href="/review"
-          className="mb-6 inline-block rounded bg-zinc-900 px-4 py-2 text-sm text-white dark:bg-zinc-50 dark:text-black"
-        >
+        <Link href="/review" className={`mb-6 ${BUTTON_PRIMARY}`}>
           Review {stats.draft} pending email{stats.draft === 1 ? "" : "s"}
         </Link>
       )}

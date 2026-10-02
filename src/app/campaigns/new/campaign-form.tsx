@@ -2,6 +2,8 @@
 
 import { useActionState } from "react";
 import { createCampaign, type CreateCampaignState } from "../actions";
+import FileInputButton from "@/components/file-input-button";
+import { BUTTON_PRIMARY } from "@/lib/ui/button-styles";
 
 const inputClasses =
   "w-full rounded border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900";
@@ -72,10 +74,8 @@ export default function CampaignForm() {
       </div>
 
       <div>
-        <label htmlFor="attachment" className="mb-1 block text-sm font-medium">
-          Campaign attachment
-        </label>
-        <input id="attachment" name="attachment" type="file" className="w-full text-sm" />
+        <p className="mb-1 text-sm font-medium">Campaign attachment</p>
+        <FileInputButton name="attachment" />
         <p className="mt-1 text-xs text-zinc-500">
           Used for emails from this campaign unless a contact has its own
           attachment. Max 10MB.
@@ -84,11 +84,7 @@ export default function CampaignForm() {
 
       {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded bg-zinc-900 px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-zinc-50 dark:text-black"
-      >
+      <button type="submit" disabled={pending} className={BUTTON_PRIMARY}>
         {pending ? "Creating..." : "Create campaign"}
       </button>
     </form>

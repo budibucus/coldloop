@@ -6,6 +6,7 @@ import {
   discardDraftEmail,
   type DraftActionState,
 } from "./actions";
+import { BUTTON_SECONDARY_SMALL, BUTTON_DANGER_SMALL } from "@/lib/ui/button-styles";
 
 const inputClasses =
   "w-full rounded border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900";
@@ -60,14 +61,14 @@ export default function DraftEmailCard({
           <button
             type="submit"
             disabled={updatePending}
-            className="rounded border border-zinc-300 px-3 py-1.5 text-xs disabled:opacity-50 dark:border-zinc-700"
+            className={BUTTON_SECONDARY_SMALL}
           >
             {updatePending ? "Saving..." : "Save edits"}
           </button>
           <button
             formAction={discardAction}
             disabled={discardPending}
-            className="rounded border border-red-300 px-3 py-1.5 text-xs text-red-600 disabled:opacity-50 dark:border-red-800"
+            className={BUTTON_DANGER_SMALL}
           >
             {discardPending ? "Removing..." : "Discard"}
           </button>

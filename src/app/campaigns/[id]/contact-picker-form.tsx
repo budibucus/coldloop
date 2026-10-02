@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { prepareCampaignBatch, type PrepareCampaignState } from "./actions";
+import { BUTTON_PRIMARY } from "@/lib/ui/button-styles";
 
 export default function ContactPickerForm({
   campaignId,
@@ -42,11 +43,7 @@ export default function ContactPickerForm({
 
       {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded bg-zinc-900 px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-zinc-50 dark:text-black"
-      >
+      <button type="submit" disabled={pending} className={BUTTON_PRIMARY}>
         {pending ? "Preparing..." : "Prepare batch"}
       </button>
     </form>

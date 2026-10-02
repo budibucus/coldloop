@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import SignOutButton from "./sign-out-button";
 import CheckRepliesButton from "./check-replies-button";
+import { BUTTON_PRIMARY, BUTTON_SECONDARY } from "@/lib/ui/button-styles";
 
 const GMAIL_STATUS_MESSAGES: Record<string, string> = {
   connected: "Gmail connected.",
@@ -107,29 +108,20 @@ export default async function DashboardPage(props: PageProps<"/dashboard">) {
             <p className="mb-3 text-sm text-zinc-500">
               Gmail connected: {gmailConnection.gmail_address}
             </p>
-            <div className="flex items-center gap-3">
-              {pendingDrafts && pendingDrafts > 0 && (
-                <Link
-                  href="/review"
-                  className="inline-block rounded bg-zinc-900 px-4 py-2 text-sm text-white dark:bg-zinc-50 dark:text-black"
-                >
+            <div className="flex flex-wrap items-center gap-3">
+              {(pendingDrafts ?? 0) > 0 && (
+                <Link href="/review" className={BUTTON_PRIMARY}>
                   Review {pendingDrafts} pending email{pendingDrafts === 1 ? "" : "s"}
                 </Link>
               )}
-              <Link
-                href="/campaigns"
-                className="inline-block rounded border border-zinc-300 px-4 py-2 text-sm dark:border-zinc-700"
-              >
+              <Link href="/campaigns" className={BUTTON_SECONDARY}>
                 Campaigns
               </Link>
               <CheckRepliesButton />
             </div>
           </>
         ) : allowedSender ? (
-          <a
-            href="/api/gmail/connect"
-            className="inline-block rounded bg-zinc-900 px-4 py-2 text-sm text-white dark:bg-zinc-50 dark:text-black"
-          >
+          <a href="/api/gmail/connect" className={BUTTON_PRIMARY}>
             Connect Gmail
           </a>
         ) : (
@@ -139,17 +131,11 @@ export default async function DashboardPage(props: PageProps<"/dashboard">) {
         )}
       </div>
 
-      <div className="flex items-center gap-3">
-        <Link
-          href="/contacts"
-          className="rounded border border-zinc-300 px-4 py-2 text-sm dark:border-zinc-700"
-        >
+      <div className="flex flex-wrap items-center gap-3">
+        <Link href="/contacts" className={BUTTON_SECONDARY}>
           Contacts
         </Link>
-        <Link
-          href="/onboarding"
-          className="rounded border border-zinc-300 px-4 py-2 text-sm dark:border-zinc-700"
-        >
+        <Link href="/onboarding" className={BUTTON_SECONDARY}>
           Edit profile
         </Link>
         <SignOutButton />

@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { importContactsCsv, type CsvImportState } from "./actions";
+import { BUTTON_SECONDARY } from "@/lib/ui/button-styles";
 
 export default function ImportCsvForm() {
   const [state, formAction, pending] = useActionState<
@@ -36,11 +37,7 @@ export default function ImportCsvForm() {
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded border border-zinc-300 px-4 py-2 text-sm disabled:opacity-50 dark:border-zinc-700"
-      >
+      <button type="submit" disabled={pending} className={BUTTON_SECONDARY}>
         {pending ? "Importing..." : "Import CSV"}
       </button>
     </form>

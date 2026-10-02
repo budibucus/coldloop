@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { checkForReplies, type CheckRepliesState } from "./check-replies-actions";
+import { BUTTON_SECONDARY } from "@/lib/ui/button-styles";
 
 export default function CheckRepliesButton() {
   const [state, formAction, pending] = useActionState<
@@ -10,12 +11,8 @@ export default function CheckRepliesButton() {
   >(checkForReplies, null);
 
   return (
-    <form action={formAction} className="space-y-2">
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded border border-zinc-300 px-4 py-2 text-sm disabled:opacity-50 dark:border-zinc-700"
-      >
+    <form action={formAction} className="inline-block space-y-2">
+      <button type="submit" disabled={pending} className={BUTTON_SECONDARY}>
         {pending ? "Checking..." : "Check for replies"}
       </button>
 

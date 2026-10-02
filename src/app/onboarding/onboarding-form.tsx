@@ -3,6 +3,8 @@
 import { useActionState } from "react";
 import { saveSenderProfile, type OnboardingFormState } from "./actions";
 import type { Database } from "@/lib/supabase/database.types";
+import FileInputButton from "@/components/file-input-button";
+import { BUTTON_PRIMARY } from "@/lib/ui/button-styles";
 
 type SenderProfile = Database["public"]["Tables"]["sender_profiles"]["Row"];
 
@@ -117,24 +119,17 @@ export default function OnboardingForm({
       </div>
 
       <div>
-        <label htmlFor="attachment" className="mb-1 block text-sm font-medium">
-          Default attachment
-        </label>
-        {profile?.default_attachment_filename && (
-          <div className="mb-2 flex items-center gap-2 text-sm text-zinc-500">
-            <span>Current: {profile.default_attachment_filename}</span>
-            <label className="flex items-center gap-1 text-xs">
-              <input type="checkbox" name="remove_attachment" />
-              Remove
-            </label>
-          </div>
-        )}
-        <input
-          id="attachment"
+        <p className="mb-1 text-sm font-medium">Default attachment</p>
+        <FileInputButton
           name="attachment"
-          type="file"
-          className="w-full text-sm"
+          defaultFilename={profile?.default_attachment_filename}
         />
+        {profile?.default_attachment_filename && (
+          <label className="mt-2 flex items-center gap-1 text-xs text-zinc-500">
+            <input type="checkbox" name="remove_attachment" />
+            Remove current attachment ({profile.default_attachment_filename})
+          </label>
+        )}
         <p className="mt-1 text-xs text-zinc-500">
           Attached to every outreach email, unless a contact has its own
           attachment. Max 10MB.
@@ -143,11 +138,7 @@ export default function OnboardingForm({
 
       {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded bg-zinc-900 px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-zinc-50 dark:text-black"
-      >
+      <button type="submit" disabled={pending} className={BUTTON_PRIMARY}>
         {pending ? "Saving..." : "Save and continue"}
       </button>
     </form>
