@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { createCampaign, type CreateCampaignState } from "../actions";
 import FileInputButton from "@/components/file-input-button";
 import { BUTTON_PRIMARY } from "@/lib/ui/button-styles";
@@ -19,6 +19,9 @@ export default function CampaignForm() {
     CreateCampaignState,
     FormData
   >(createCampaign, null);
+  const [generationMode, setGenerationMode] = useState<"template" | "ai">(
+    "template",
+  );
 
   return (
     <form action={formAction} className="space-y-4">
@@ -71,6 +74,55 @@ export default function CampaignForm() {
           A ceiling across this campaign&apos;s whole lifetime, even if you
           prepare and send from it more than once.
         </p>
+      </div>
+
+      <div>
+        <p className="mb-1 text-sm font-medium">How should emails be written?</p>
+        <div className="space-y-2">
+          <label className="flex items-start gap-2 text-sm">
+            <input
+              type="radio"
+              name="generation_mode"
+              value="template"
+              checked={generationMode === "template"}
+              onChange={() => setGenerationMode("template")}
+              className="mt-1"
+            />
+            <span>
+              Standard template
+              <span className="block text-xs text-zinc-500">
+                Free, instant, uses your profile and each contact&apos;s
+                details.
+              </span>
+            </span>
+          </label>
+          <label className="flex items-start gap-2 text-sm">
+            <input
+              type="radio"
+              name="generation_mode"
+              value="ai"
+              checked={generationMode === "ai"}
+              onChange={() => setGenerationMode("ai")}
+              className="mt-1"
+            />
+            <span>
+              Generate with AI
+              <span className="block text-xs text-zinc-500">
+                Describe what you want below; Claude writes a personalized
+                email per contact.
+              </span>
+            </span>
+          </label>
+        </div>
+        {generationMode === "ai" && (
+          <textarea
+            name="ai_prompt"
+            rows={3}
+            required
+            placeholder="e.g. Write a friendly, concise intro mentioning our new product launch and inviting them to a 15-minute call."
+            className={`${inputClasses} mt-2`}
+          />
+        )}
       </div>
 
       <div>

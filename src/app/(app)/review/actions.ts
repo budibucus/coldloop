@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getGmailClientForUser, sendGmailMessage } from "@/lib/gmail/client";
 import { downloadAttachment } from "@/lib/storage/attachments";
+import { generateEmailWithAI } from "@/lib/ai/generate-email";
 
 export type DraftActionState = { error: string } | null;
 export type ConfirmSendState = { error: string } | null;
@@ -62,6 +63,69 @@ export async function discardDraftEmail(
   const { error } = await supabase
     .from("emails")
     .delete()
+    .eq("id", emailId)
+    .eq("user_id", user.id)
+    .eq("status", "draft");
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath("/review");
+  return null;
+}
+
+export async function regenerateDraftWithAI(
+  _prevState: DraftActionState,
+  formData: FormData,
+): Promise<DraftActionState> {
+  const { supabase, user } = await requireUser();
+
+  const emailId = String(formData.get("email_id") ?? "");
+  const instructions = String(formData.get("ai_instructions") ?? "").trim();
+
+  const { data: draft } = await supabase
+    .from("emails")
+    .select("id, contact_id, subject, body")
+    .eq("id", emailId)
+    .eq("user_id", user.id)
+    .eq("status", "draft")
+    .maybeSingle();
+
+  if (!draft) {
+    return { error: "Draft not found." };
+  }
+
+  const { data: contact } = await supabase
+    .from("contacts")
+    .select("*")
+    .eq("id", draft.contact_id)
+    .maybeSingle();
+
+  const { data: profile } = await supabase
+    .from("sender_profiles")
+    .select("*")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!contact || !profile) {
+    return { error: "Missing contact or profile data." };
+  }
+
+  const result = await generateEmailWithAI({
+    profile,
+    contact,
+    instructions,
+    existingDraft: { subject: draft.subject, body: draft.body },
+  });
+
+  if ("error" in result) {
+    return { error: result.error };
+  }
+
+  const { error } = await supabase
+    .from("emails")
+    .update({ subject: result.subject, body: result.body })
     .eq("id", emailId)
     .eq("user_id", user.id)
     .eq("status", "draft");

@@ -31,9 +31,11 @@ export type Database = {
       }
       campaigns: {
         Row: {
+          ai_prompt: string | null
           attachment_filename: string | null
           attachment_path: string | null
           created_at: string
+          generation_mode: string
           id: string
           max_send_count: number
           name: string
@@ -41,9 +43,11 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          ai_prompt?: string | null
           attachment_filename?: string | null
           attachment_path?: string | null
           created_at?: string
+          generation_mode?: string
           id?: string
           max_send_count?: number
           name: string
@@ -51,9 +55,11 @@ export type Database = {
           user_id: string
         }
         Update: {
+          ai_prompt?: string | null
           attachment_filename?: string | null
           attachment_path?: string | null
           created_at?: string
+          generation_mode?: string
           id?: string
           max_send_count?: number
           name?: string

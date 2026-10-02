@@ -3,7 +3,12 @@ import { createClient } from "@/lib/supabase/server";
 import DraftEmailCard from "./draft-email-card";
 import SendAllButton from "./send-all-button";
 
-export default async function ReviewPage() {
+export default async function ReviewPage(props: PageProps<"/review">) {
+  const searchParams = await props.searchParams;
+  const aiFailedParam = searchParams.ai_failed;
+  const aiFailed =
+    Number(Array.isArray(aiFailedParam) ? aiFailedParam[0] : aiFailedParam) || 0;
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -29,6 +34,13 @@ export default async function ReviewPage() {
 
   return (
     <div>
+      {aiFailed > 0 && (
+        <p className="mb-4 rounded border border-zinc-200 px-3 py-2 text-sm dark:border-zinc-800">
+          AI generation failed for {aiFailed} contact{aiFailed === 1 ? "" : "s"};
+          they were skipped and can be prepared again later.
+        </p>
+      )}
+
       {!drafts || drafts.length === 0 ? (
         <p className="text-sm text-zinc-500">
           Nothing to review. Prepare a batch from a campaign first.

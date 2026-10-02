@@ -27,6 +27,8 @@ export async function createCampaign(
   const objective = String(formData.get("objective") ?? "") as SequenceStep;
   const maxSendCountRaw = String(formData.get("max_send_count") ?? "").trim();
   const maxSendCount = Number(maxSendCountRaw);
+  const generationMode = String(formData.get("generation_mode") ?? "template");
+  const aiPrompt = String(formData.get("ai_prompt") ?? "").trim();
 
   if (!name) {
     return { error: "Give the campaign a name." };
@@ -36,6 +38,12 @@ export async function createCampaign(
   }
   if (!Number.isInteger(maxSendCount) || maxSendCount < 1) {
     return { error: "Max emails must be a positive whole number." };
+  }
+  if (generationMode !== "template" && generationMode !== "ai") {
+    return { error: "Invalid generation mode." };
+  }
+  if (generationMode === "ai" && !aiPrompt) {
+    return { error: "Describe what you want the AI to write." };
   }
 
   let attachmentPath: string | null = null;
@@ -60,6 +68,8 @@ export async function createCampaign(
       max_send_count: maxSendCount,
       attachment_path: attachmentPath,
       attachment_filename: attachmentFilename,
+      generation_mode: generationMode,
+      ai_prompt: generationMode === "ai" ? aiPrompt : null,
     })
     .select("id")
     .single();

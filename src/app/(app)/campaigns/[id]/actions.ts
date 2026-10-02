@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { renderEmail } from "@/lib/emails/templates";
 import { filterEligibleForStep } from "@/lib/emails/sequencing";
+import { generateEmailWithAI } from "@/lib/ai/generate-email";
 
 export type PrepareCampaignState = { error: string } | null;
 
@@ -98,30 +99,70 @@ export async function prepareCampaignBatch(
 
   const contactsToUse = eligibleContacts.slice(0, remainingBudget);
 
-  const draftRows = contactsToUse.map((contact) => {
-    const { subject, body } = renderEmail(campaign.objective, profile, contact);
+  const draftRows: {
+    user_id: string;
+    contact_id: string;
+    campaign_id: string;
+    sequence_step: typeof campaign.objective;
+    subject: string;
+    body: string;
+    status: "draft";
+    attachment_filename: string | null;
+  }[] = [];
+  let aiFailures = 0;
+
+  for (const contact of contactsToUse) {
     const attachmentFilename =
       contact.attachment_filename ??
       campaign.attachment_filename ??
       profile.default_attachment_filename ??
       null;
 
-    return {
+    let subject: string;
+    let body: string;
+
+    if (campaign.generation_mode === "ai") {
+      const result = await generateEmailWithAI({
+        profile,
+        contact,
+        instructions: campaign.ai_prompt ?? "",
+      });
+      if ("error" in result) {
+        aiFailures += 1;
+        continue;
+      }
+      subject = result.subject;
+      body = result.body;
+    } else {
+      const rendered = renderEmail(campaign.objective, profile, contact);
+      subject = rendered.subject;
+      body = rendered.body;
+    }
+
+    draftRows.push({
       user_id: user.id,
       contact_id: contact.id,
       campaign_id: campaign.id,
       sequence_step: campaign.objective,
       subject,
       body,
-      status: "draft" as const,
+      status: "draft",
       attachment_filename: attachmentFilename,
-    };
-  });
+    });
+  }
+
+  if (draftRows.length === 0) {
+    return { error: "AI generation failed for every selected contact. Try again." };
+  }
 
   const { error } = await supabase.from("emails").insert(draftRows);
   if (error) {
     return { error: error.message };
   }
 
-  redirect("/review");
+  redirect(
+    aiFailures > 0
+      ? `/review?ai_failed=${aiFailures}`
+      : "/review",
+  );
 }

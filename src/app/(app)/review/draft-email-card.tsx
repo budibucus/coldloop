@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import {
   updateDraftEmail,
   discardDraftEmail,
+  regenerateDraftWithAI,
   type DraftActionState,
 } from "./actions";
 import { BUTTON_SECONDARY_SMALL, BUTTON_DANGER_SMALL } from "@/lib/ui/button-styles";
@@ -32,6 +33,10 @@ export default function DraftEmailCard({
     DraftActionState,
     FormData
   >(discardDraftEmail, null);
+  const [regenerateState, regenerateAction, regeneratePending] = useActionState<
+    DraftActionState,
+    FormData
+  >(regenerateDraftWithAI, null);
 
   return (
     <div className="rounded border border-zinc-300 p-4 dark:border-zinc-700">
@@ -44,7 +49,13 @@ export default function DraftEmailCard({
         {draft.attachment_filename && <span>📎 {draft.attachment_filename}</span>}
       </div>
 
-      <form action={updateAction} className="space-y-2">
+      {/* Keyed on content so the uncontrolled inputs below re-sync their
+          defaultValue after an AI regeneration changes subject/body server-side. */}
+      <form
+        key={`${draft.subject}::${draft.body}`}
+        action={updateAction}
+        className="space-y-2"
+      >
         <input type="hidden" name="email_id" value={draft.id} />
         <input
           name="subject"
@@ -57,6 +68,22 @@ export default function DraftEmailCard({
           defaultValue={draft.body}
           className={inputClasses}
         />
+
+        <div className="flex items-center gap-2">
+          <input
+            name="ai_instructions"
+            placeholder="Tell AI how to change this email (optional)"
+            className={`${inputClasses} flex-1`}
+          />
+          <button
+            formAction={regenerateAction}
+            disabled={regeneratePending}
+            className={BUTTON_SECONDARY_SMALL}
+          >
+            {regeneratePending ? "Generating..." : "Regenerate with AI"}
+          </button>
+        </div>
+
         <div className="flex items-center gap-2">
           <button
             type="submit"
@@ -78,6 +105,9 @@ export default function DraftEmailCard({
         )}
         {discardState?.error && (
           <p className="text-xs text-red-600">{discardState.error}</p>
+        )}
+        {regenerateState?.error && (
+          <p className="text-xs text-red-600">{regenerateState.error}</p>
         )}
       </form>
     </div>
