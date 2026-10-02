@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import SignOutButton from "./sign-out-button";
 import CheckRepliesButton from "./check-replies-button";
 import { BUTTON_PRIMARY, BUTTON_SECONDARY } from "@/lib/ui/button-styles";
 
@@ -75,11 +74,33 @@ export default async function DashboardPage(props: PageProps<"/dashboard">) {
     .eq("user_id", user.id)
     .eq("status", "draft");
 
-  return (
-    <main className="mx-auto mt-24 w-full max-w-md px-4">
-      <h1 className="mb-4 text-2xl font-semibold">Coldloop</h1>
-      <p className="mb-6 text-sm text-zinc-500">Signed in as {user.email}</p>
+  const { count: contactCount } = await supabase
+    .from("contacts")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id);
 
+  const { count: campaignCount } = await supabase
+    .from("campaigns")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id);
+
+  const { count: sentCount } = await supabase
+    .from("emails")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .eq("status", "sent");
+
+  const steps = [
+    { label: "Set up your profile", done: true },
+    { label: "Add contacts", done: (contactCount ?? 0) > 0 },
+    { label: "Connect Gmail", done: !!gmailConnection },
+    { label: "Create a campaign", done: (campaignCount ?? 0) > 0 },
+    { label: "Send your first email", done: (sentCount ?? 0) > 0 },
+  ];
+  const completedSteps = steps.filter((s) => s.done).length;
+
+  return (
+    <div>
       {gmailStatus && GMAIL_STATUS_MESSAGES[gmailStatus] && (
         <p className="mb-4 rounded border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700">
           {GMAIL_STATUS_MESSAGES[gmailStatus]}
@@ -102,7 +123,42 @@ export default async function DashboardPage(props: PageProps<"/dashboard">) {
         </p>
       )}
 
-      <div className="mb-6">
+      {completedSteps < steps.length && (
+        <div className="mb-6 rounded border border-zinc-200 p-4 dark:border-zinc-800">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-sm font-medium">Let&apos;s build your outreach</p>
+            <p className="text-sm text-zinc-500">
+              {completedSteps}/{steps.length} steps completed
+            </p>
+          </div>
+          <div className="mb-4 h-1.5 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-900">
+            <div
+              className="h-full bg-indigo-600"
+              style={{ width: `${(completedSteps / steps.length) * 100}%` }}
+            />
+          </div>
+          <ul className="space-y-2">
+            {steps.map((step) => (
+              <li key={step.label} className="flex items-center gap-2 text-sm">
+                <span
+                  className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] ${
+                    step.done
+                      ? "bg-indigo-600 text-white"
+                      : "border border-zinc-300 dark:border-zinc-700"
+                  }`}
+                >
+                  {step.done && "✓"}
+                </span>
+                <span className={step.done ? "text-zinc-400 line-through" : ""}>
+                  {step.label}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="mb-6 rounded border border-zinc-200 p-4 dark:border-zinc-800">
         {gmailConnection ? (
           <>
             <p className="mb-3 text-sm text-zinc-500">
@@ -130,16 +186,6 @@ export default async function DashboardPage(props: PageProps<"/dashboard">) {
           </p>
         )}
       </div>
-
-      <div className="flex flex-wrap items-center gap-3">
-        <Link href="/contacts" className={BUTTON_SECONDARY}>
-          Contacts
-        </Link>
-        <Link href="/onboarding" className={BUTTON_SECONDARY}>
-          Edit profile
-        </Link>
-        <SignOutButton />
-      </div>
-    </main>
+    </div>
   );
 }

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import DraftEmailCard from "./draft-email-card";
@@ -29,18 +28,10 @@ export default async function ReviewPage() {
   const contactById = new Map((contactRows ?? []).map((c) => [c.id, c]));
 
   return (
-    <main className="mx-auto mt-24 w-full max-w-2xl px-4 pb-24">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Review today&apos;s batch</h1>
-        <Link href="/dashboard" className="text-sm text-zinc-500 underline">
-          Back to dashboard
-        </Link>
-      </div>
-
+    <div>
       {!drafts || drafts.length === 0 ? (
         <p className="text-sm text-zinc-500">
-          Nothing to review. Go to the dashboard and click &quot;Prepare
-          today&apos;s batch&quot;.
+          Nothing to review. Prepare a batch from a campaign first.
         </p>
       ) : (
         <>
@@ -62,6 +53,6 @@ export default async function ReviewPage() {
           </div>
         </>
       )}
-    </main>
+    </div>
   );
 }

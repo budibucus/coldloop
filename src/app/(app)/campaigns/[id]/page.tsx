@@ -68,15 +68,10 @@ export default async function CampaignDetailPage(
   );
 
   return (
-    <main className="mx-auto mt-24 w-full max-w-2xl px-4 pb-24">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">{campaign.name}</h1>
-        <Link href="/campaigns" className="text-sm text-zinc-500 underline">
-          Back to campaigns
-        </Link>
-      </div>
+    <div>
+      <h2 className="mb-4 text-xl font-semibold">{campaign.name}</h2>
 
-      <div className="mb-6 rounded border border-zinc-300 p-4 text-sm dark:border-zinc-700">
+      <div className="mb-6 rounded border border-zinc-200 p-4 text-sm dark:border-zinc-800">
         <p>
           Objective: {OBJECTIVE_LABELS[campaign.objective] ?? campaign.objective}
         </p>
@@ -115,6 +110,6 @@ export default async function CampaignDetailPage(
           remainingBudget={remainingBudget}
         />
       )}
-    </main>
+    </div>
   );
 }
